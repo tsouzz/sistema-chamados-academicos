@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Painel Gerencial')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: topo('dashboard')}"></header>
+<main class="container py-4">
+    <div th:replace="~{fragments/layout :: mensagem}"></div>
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+        <div>
+            <h1 class="h3 mb-0">Painel Gerencial</h1>
+            <p class="text-secondary mb-0">Visão consolidada de atendimento e desempenho por departamento</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-secondary" th:href="@{/chamados/exportar/csv}">Exportar CSV</a>
+            <a class="btn btn-brand" th:href="@{/chamados/exportar/pdf}">Exportar PDF</a>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="painel h-100">
+                <div class="text-secondary small">Total de chamados</div>
+                <div class="fs-2 fw-bold" th:text="${totalGeral}">0</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="painel h-100">
+                <div class="text-secondary small">Abertos</div>
+                <div class="fs-2 fw-bold text-primary" th:text="${abertosGeral}">0</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="painel h-100">
+                <div class="text-secondary small">Em andamento</div>
+                <div class="fs-2 fw-bold text-warning" th:text="${emAndamentoGeral}">0</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="painel h-100">
+                <div class="text-secondary small">Concluídos</div>
+                <div class="fs-2 fw-bold text-success" th:text="${concluidosGeral}">0</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-lg-7">
+            <div class="painel h-100">
+                <h2 class="h5 mb-3">Volume de chamados por departamento</h2>
+                <canvas id="graficoSetores" height="140"></canvas>
+            </div>
+        </div>
+        <div class="col-12 col-lg-5">
+            <div class="painel h-100">
+                <h2 class="h5 mb-3">Distribuição por status</h2>
+                <canvas id="graficoStatus" height="180"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-responsive painel p-0">
+        <table class="table align-middle mb-0">
+            <thead>
+            <tr>
+                <th scope="col">Setor</th>
+                <th scope="col" class="text-end">Total</th>
+                <th scope="col" class="text-end">Abertos</th>
+                <th scope="col" class="text-end">Em análise</th>
+                <th scope="col" class="text-end">Aguardando</th>
+                <th scope="col" class="text-end">Concluídos</th>
+                <th scope="col" class="text-end">Cancelados</th>
+                <th scope="col" class="text-end">Média (dias)</th>
+                <th scope="col" class="text-end">Resolução</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="i : ${indicadores}">
+                <td><strong th:text="${i.sigla()}">TI</strong> - <span th:text="${i.nome()}">Departamento</span></td>
+                <td class="text-end" th:text="${i.total()}">0</td>
+                <td class="text-end" th:text="${i.abertos()}">0</td>
+                <td class="text-end" th:text="${i.emAnalise()}">0</td>
+                <td class="text-end" th:text="${i.aguardando()}">0</td>
+                <td class="text-end" th:text="${i.concluidos()}">0</td>
+                <td class="text-end" th:text="${i.cancelados()}">0</td>
+                <td class="text-end" th:text="${#numbers.formatDecimal(i.mediaDias(), 1, 1)}">0,0</td>
+                <td class="text-end" th:text="${#numbers.formatDecimal(i.taxaResolucao(), 1, 1) + '%'}">0%</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script th:inline="javascript">
+    const indicadores = /*[[${indicadores}]]*/ [];
+    const abertos = /*[[${abertosGeral}]]*/ 0;
+    const emAndamento = /*[[${emAndamentoGeral}]]*/ 0;
+    const concluidos = /*[[${concluidosGeral}]]*/ 0;
+    const cancelados = /*[[${canceladosGeral}]]*/ 0;
+
+    new Chart(document.getElementById('graficoSetores'), {
+        type: 'bar',
+        data: {
+            labels: indicadores.map(i => i.sigla),
+            datasets: [
+                {
+                    label: 'Concluídos',
+                    data: indicadores.map(i => i.concluidos),
+                    backgroundColor: '#198754'
+                },
+                {
+                    label: 'Em aberto / andamento',
+                    data: indicadores.map(i => i.abertos + i.emAnalise + i.aguardando),
+                    backgroundColor: '#0d6efd'
+                },
+                {
+                    label: 'Cancelados',
+                    data: indicadores.map(i => i.cancelados),
+                    backgroundColor: '#6c757d'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: { stacked: true },
+                y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } }
+            }
+        }
+    });
+
+    new Chart(document.getElementById('graficoStatus'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Abertos', 'Em andamento', 'Concluídos', 'Cancelados'],
+            datasets: [{
+                data: [abertos, emAndamento, concluidos, cancelados],
+                backgroundColor: ['#0d6efd', '#ffc107', '#198754', '#6c757d']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'bottom' } }
+        }
+    });
+</script>
+</body>
+</html>

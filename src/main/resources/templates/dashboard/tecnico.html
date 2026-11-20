@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Painel Técnico')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: topo('dashboard')}"></header>
+<main class="container py-4">
+    <div th:replace="~{fragments/layout :: mensagem}"></div>
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+        <div>
+            <h1 class="h3 mb-0">Fila de Atendimento</h1>
+            <p class="text-secondary mb-0">
+                Setor: <strong th:text="${#authentication.principal.departamentoSigla ?: 'Geral'}">TI</strong>
+            </p>
+        </div>
+        <a class="btn btn-outline-secondary" th:href="@{/chamados}">Ver todos os chamados</a>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-4">
+            <div class="painel h-100">
+                <div class="text-secondary small">Atribuídos a mim (ativos)</div>
+                <div class="fs-2 fw-bold" th:text="${#lists.size(meusAtribuidos)}">0</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="painel h-100">
+                <div class="text-secondary small">Sem responsável no meu setor</div>
+                <div class="fs-2 fw-bold text-danger" th:text="${#lists.size(filaSetor)}">0</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="painel h-100">
+                <div class="text-secondary small">Concluídos por mim</div>
+                <div class="fs-2 fw-bold text-success" th:text="${concluidosPorMim}">0</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="painel mb-4">
+        <h2 class="h5 mb-3">Meus chamados em atendimento</h2>
+        <div class="table-responsive" th:if="${!#lists.isEmpty(meusAtribuidos)}">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                <tr>
+                    <th>Nº</th>
+                    <th>Título</th>
+                    <th>Solicitante</th>
+                    <th>Status</th>
+                    <th>Prioridade</th>
+                    <th>Ação</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="c : ${meusAtribuidos}">
+                    <td th:text="${c.id}">1</td>
+                    <td><a class="titulo" th:href="@{/chamados/{id}(id=${c.id})}" th:text="${c.titulo}">Título</a></td>
+                    <td th:text="${c.solicitante.nome}">Solicitante</td>
+                    <td><span class="badge-status" th:classappend="'st-' + ${c.status.css}" th:text="${c.status.rotulo}">Em análise</span></td>
+                    <td><span th:classappend="'pr-' + ${c.prioridade.css}" th:text="${c.prioridade.rotulo}">Alta</span></td>
+                    <td><a class="btn btn-sm btn-brand" th:href="@{/chamados/{id}/editar(id=${c.id})}">Atender</a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="text-secondary mb-0" th:if="${#lists.isEmpty(meusAtribuidos)}">Nenhum chamado ativo atribuído a você.</p>
+    </div>
+
+    <div class="painel">
+        <h2 class="h5 mb-3">Fila aguardando atribuição no seu setor</h2>
+        <div class="table-responsive" th:if="${!#lists.isEmpty(filaSetor)}">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                <tr>
+                    <th>Nº</th>
+                    <th>Título</th>
+                    <th>Categoria</th>
+                    <th>Prioridade</th>
+                    <th>Aberto em</th>
+                    <th>Ação</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="c : ${filaSetor}">
+                    <td th:text="${c.id}">1</td>
+                    <td><a class="titulo" th:href="@{/chamados/{id}(id=${c.id})}" th:text="${c.titulo}">Título</a></td>
+                    <td th:text="${c.categoria.nome}">Suporte</td>
+                    <td><span th:classappend="'pr-' + ${c.prioridade.css}" th:text="${c.prioridade.rotulo}">Média</span></td>
+                    <td th:text="${#temporals.format(c.dataAbertura, 'dd/MM/yyyy')}">01/01/2026</td>
+                    <td><a class="btn btn-sm btn-outline-primary" th:href="@{/chamados/{id}/editar(id=${c.id})}">Assumir</a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="text-secondary mb-0" th:if="${#lists.isEmpty(filaSetor)}">Nenhum chamado pendente sem responsável no seu setor.</p>
+    </div>
+</main>
+</body>
+</html>

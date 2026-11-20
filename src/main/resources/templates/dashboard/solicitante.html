@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Meu Painel')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: topo('dashboard')}"></header>
+<main class="container py-4">
+    <div th:replace="~{fragments/layout :: mensagem}"></div>
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+        <div>
+            <h1 class="h3 mb-0" th:text="'Olá, ' + ${#authentication.principal.nome}">Olá</h1>
+            <p class="text-secondary mb-0">Acompanhe suas solicitações e abra novos atendimentos.</p>
+        </div>
+        <a class="btn btn-brand" th:href="@{/chamados/novo}">+ Novo chamado</a>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-4">
+            <div class="painel h-100">
+                <div class="text-secondary small">Chamados em andamento</div>
+                <div class="fs-2 fw-bold" th:text="${#lists.size(emAberto)}">0</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="painel h-100">
+                <div class="text-secondary small">Aguardando sua resposta</div>
+                <div class="fs-2 fw-bold text-warning" th:text="${aguardandoAcao}">0</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="painel h-100">
+                <div class="text-secondary small">Histórico encerrado</div>
+                <div class="fs-2 fw-bold text-success" th:text="${#lists.size(encerrados)}">0</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="painel mb-4">
+        <h2 class="h5 mb-3">Meus chamados abertos</h2>
+        <div class="table-responsive" th:if="${!#lists.isEmpty(emAberto)}">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                <tr>
+                    <th>Nº</th>
+                    <th>Título</th>
+                    <th>Setor</th>
+                    <th>Status</th>
+                    <th>Prioridade</th>
+                    <th>Aberto em</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="c : ${emAberto}">
+                    <td th:text="${c.id}">1</td>
+                    <td><a class="titulo" th:href="@{/chamados/{id}(id=${c.id})}" th:text="${c.titulo}">Título</a></td>
+                    <td th:text="${c.categoria.departamento.sigla}">TI</td>
+                    <td><span class="badge-status" th:classappend="'st-' + ${c.status.css}" th:text="${c.status.rotulo}">Aberto</span></td>
+                    <td><span th:classappend="'pr-' + ${c.prioridade.css}" th:text="${c.prioridade.rotulo}">Alta</span></td>
+                    <td th:text="${#temporals.format(c.dataAbertura, 'dd/MM/yyyy')}">01/01/2026</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="text-secondary mb-0" th:if="${#lists.isEmpty(emAberto)}">Você não possui chamados abertos no momento.</p>
+    </div>
+
+    <div class="painel">
+        <h2 class="h5 mb-3">Histórico recente</h2>
+        <div class="table-responsive" th:if="${!#lists.isEmpty(encerrados)}">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                <tr>
+                    <th>Nº</th>
+                    <th>Título</th>
+                    <th>Status</th>
+                    <th>Atualizado em</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="c : ${encerrados}">
+                    <td th:text="${c.id}">1</td>
+                    <td><a class="titulo" th:href="@{/chamados/{id}(id=${c.id})}" th:text="${c.titulo}">Título</a></td>
+                    <td><span class="badge-status" th:classappend="'st-' + ${c.status.css}" th:text="${c.status.rotulo}">Concluído</span></td>
+                    <td th:text="${#temporals.format(c.dataAtualizacao, 'dd/MM/yyyy')}">01/01/2026</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="text-secondary mb-0" th:if="${#lists.isEmpty(encerrados)}">Nenhum chamado encerrado no seu histórico.</p>
+    </div>
+</main>
+</body>
+</html>
