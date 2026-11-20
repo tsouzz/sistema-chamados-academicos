@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Erro interno (500)')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: topo('')}"></header>
+<main class="container py-5" style="max-width: 640px;">
+    <div class="painel text-center py-5 px-4">
+        <span class="badge bg-dark mb-2 fs-6">Erro 500</span>
+        <h1 class="h3 fw-bold mb-3">Erro interno no servidor</h1>
+        <p class="text-secondary mb-4"
+           th:text="${mensagem != null ? mensagem : 'Ocorreu uma falha inesperada ao processar sua solicitação. Nenhuma informação técnica sensível foi exposta.'}">
+            Ocorreu uma falha inesperada ao processar sua solicitação.
+        </p>
+        <div class="d-flex justify-content-center gap-2">
+            <a class="btn btn-brand" th:href="@{/chamados}">Ir para o início</a>
+            <button type="button" class="btn btn-outline-secondary" onclick="history.back()">Tentar novamente</button>
+        </div>
+    </div>
+</main>
+</body>
+</html>

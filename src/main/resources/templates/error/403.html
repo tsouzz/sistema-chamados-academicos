@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Acesso negado (403)')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: topo('')}"></header>
+<main class="container py-5" style="max-width: 640px;">
+    <div class="painel text-center py-5 px-4">
+        <span class="badge bg-danger mb-2 fs-6">Erro 403</span>
+        <h1 class="h3 fw-bold mb-3">Acesso negado</h1>
+        <p class="text-secondary mb-4"
+           th:text="${mensagem != null ? mensagem : 'Você não possui permissão para acessar esta página ou executar esta operação.'}">
+            Você não possui permissão para acessar esta página ou executar esta operação.
+        </p>
+        <div class="d-flex justify-content-center gap-2">
+            <a class="btn btn-brand" th:href="@{/chamados}">Ir para Chamados</a>
+            <button type="button" class="btn btn-outline-secondary" onclick="history.back()">Voltar</button>
+        </div>
+    </div>
+</main>
+</body>
+</html>

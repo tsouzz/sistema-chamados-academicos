@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Indicadores')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: topo('indicadores')}"></header>
+<main id="conteudo-principal" class="container py-4">
+    <div th:replace="~{fragments/layout :: mensagem}"></div>
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <h1 class="h3 m-0">Indicadores por setor</h1>
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-secondary btn-sm" th:href="@{/chamados/exportar/csv}">Exportar CSV</a>
+            <a class="btn btn-brand btn-sm" th:href="@{/chamados/exportar/pdf}">Exportar PDF</a>
+        </div>
+    </div>
+
+    <div class="table-responsive painel p-0 mb-4" th:if="${!#lists.isEmpty(indicadores)}">
+        <table class="table align-middle mb-0">
+            <thead>
+            <tr>
+                <th scope="col">Setor</th>
+                <th scope="col" class="text-end">Total</th>
+                <th scope="col" class="text-end">Abertos</th>
+                <th scope="col" class="text-end">Em análise</th>
+                <th scope="col" class="text-end">Aguardando</th>
+                <th scope="col" class="text-end">Concluídos</th>
+                <th scope="col" class="text-end">Cancelados</th>
+                <th scope="col" class="text-end">Média de dias</th>
+                <th scope="col" class="text-end">Resolução</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="i : ${indicadores}">
+                <td><span th:text="${i.sigla()}" class="fw-semibold">TI</span>
+                    <span class="text-secondary" th:text="${i.nome()}">Nome</span></td>
+                <td class="text-end" th:text="${i.total()}">0</td>
+                <td class="text-end" th:text="${i.abertos()}">0</td>
+                <td class="text-end" th:text="${i.emAnalise()}">0</td>
+                <td class="text-end" th:text="${i.aguardando()}">0</td>
+                <td class="text-end" th:text="${i.concluidos()}">0</td>
+                <td class="text-end" th:text="${i.cancelados()}">0</td>
+                <td class="text-end" th:text="${#numbers.formatDecimal(i.mediaDias(), 1, 1)}">0,0</td>
+                <td class="text-end" th:text="${#numbers.formatDecimal(i.taxaResolucao(), 1, 1) + '%'}">0%</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <th:block th:if="${#lists.isEmpty(indicadores)}">
+        <div th:replace="~{fragments/layout :: emptyState('Sem indicadores disponíveis', 'Ainda não existem departamentos ou chamados registrados para cálculo.', '/chamados', 'Ver chamados')}"></div>
+    </th:block>
+
+    <div class="painel">
+        <h2 class="h5">Encerrar chamados inativos</h2>
+        <p class="mb-3">
+            Cancela automaticamente os chamados que estão aguardando o solicitante há
+            <strong th:text="${diasInatividade}">15</strong> dias ou mais.
+        </p>
+        <form method="post" th:action="@{/indicadores/encerrar-inativos}"
+              onsubmit="return confirm('Encerrar agora todos os chamados inativos há 15 dias ou mais?');">
+            <button type="submit" class="btn btn-brand">Encerrar chamados inativos</button>
+        </form>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: rodape}"></footer>
+</body>
+</html>
