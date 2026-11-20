@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Atualizar chamado')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: topo('chamados')}"></header>
+<main id="conteudo-principal" class="container py-4" style="max-width: 760px;">
+    <div th:replace="~{fragments/layout :: mensagem}"></div>
+
+    <a th:href="@{/chamados/{id}(id=${chamado.id})}" class="small">&larr; Voltar para o chamado</a>
+    <h1 class="h3 mt-1 mb-1" th:text="'Atualizar #' + ${chamado.id}">Atualizar</h1>
+    <p class="text-secondary" th:text="${chamado.titulo}">Título</p>
+
+    <form class="painel" method="post" th:action="@{/chamados/{id}/editar(id=${chamado.id})}"
+          th:object="${dto}" data-validate="true" novalidate>
+        <input type="hidden" th:field="*{versao}">
+
+        <div class="row g-3 mb-3">
+            <div class="col-12 col-md-6">
+                <label class="form-label" for="status">Status <span class="text-danger" aria-hidden="true">*</span></label>
+                <select id="status" class="form-select" required th:field="*{status}"
+                        th:classappend="${#fields.hasErrors('status')} ? 'is-invalid'">
+                    <option th:each="s : ${statusValores}" th:value="${s}" th:text="${s.rotulo}"></option>
+                </select>
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('status')}" th:errors="*{status}"></div>
+            </div>
+            <div class="col-12 col-md-6">
+                <label class="form-label" for="prioridade">Prioridade <span class="text-danger" aria-hidden="true">*</span></label>
+                <select id="prioridade" class="form-select" required th:field="*{prioridade}"
+                        th:classappend="${#fields.hasErrors('prioridade')} ? 'is-invalid'">
+                    <option th:each="p : ${prioridades}" th:value="${p}" th:text="${p.rotulo}"></option>
+                </select>
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('prioridade')}" th:errors="*{prioridade}"></div>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" for="responsavelId">Responsável</label>
+            <select id="responsavelId" class="form-select" th:field="*{responsavelId}">
+                <option value="">Não atribuído</option>
+                <option th:each="u : ${atendentes}" th:value="${u.id}"
+                        th:text="${u.nome + ' (' + u.papel.rotulo + ')'}"></option>
+            </select>
+        </div>
+
+        <div class="mb-4">
+            <label class="form-label" for="observacaoAtendimento">
+                Observações do atendimento
+                <span id="avisoObsObrigatoria" class="badge bg-warning text-dark ms-1 d-none">Obrigatória para encerrar</span>
+            </label>
+            <textarea id="observacaoAtendimento" rows="5" class="form-control" maxlength="500"
+                      aria-describedby="contadorObs"
+                      data-char-counter="contadorObs"
+                      th:field="*{observacaoAtendimento}"
+                      th:classappend="${#fields.hasErrors('observacaoAtendimento')} ? 'is-invalid'"></textarea>
+            <div class="invalid-feedback" th:if="${#fields.hasErrors('observacaoAtendimento')}" th:errors="*{observacaoAtendimento}"></div>
+            <div class="invalid-feedback" th:unless="${#fields.hasErrors('observacaoAtendimento')}">Informe a justificativa ou solução ao concluir/cancelar o chamado.</div>
+            <div id="contadorObs" class="form-text text-secondary">0/500 caracteres</div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-brand">Salvar alterações</button>
+            <a class="btn btn-outline-secondary" th:href="@{/chamados/{id}(id=${chamado.id})}">Cancelar</a>
+        </div>
+    </form>
+</main>
+<footer th:replace="~{fragments/layout :: rodape}"></footer>
+</body>
+</html>

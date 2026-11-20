@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Novo chamado')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: topo('novo')}"></header>
+<main id="conteudo-principal" class="container py-4" style="max-width: 760px;">
+    <div th:replace="~{fragments/layout :: mensagem}"></div>
+
+    <h1 class="h3 mb-3">Novo chamado</h1>
+
+    <form class="painel" method="post" enctype="multipart/form-data"
+          th:action="@{/chamados}" th:object="${dto}" data-validate="true" novalidate>
+        <div class="mb-3">
+            <label class="form-label" for="titulo">Título <span class="text-danger" aria-hidden="true">*</span></label>
+            <input id="titulo" type="text" class="form-control" maxlength="120" required
+                   aria-describedby="contadorTitulo"
+                   data-char-counter="contadorTitulo"
+                   th:field="*{titulo}"
+                   th:classappend="${#fields.hasErrors('titulo')} ? 'is-invalid'">
+            <div class="invalid-feedback" th:if="${#fields.hasErrors('titulo')}" th:errors="*{titulo}"></div>
+            <div class="invalid-feedback" th:unless="${#fields.hasErrors('titulo')}">Informe um título resumido para o chamado.</div>
+            <div id="contadorTitulo" class="form-text text-secondary">0/120 caracteres</div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" for="categoriaId">Categoria <span class="text-danger" aria-hidden="true">*</span></label>
+            <select id="categoriaId" class="form-select" required
+                    aria-describedby="ajudaCategoria"
+                    th:field="*{categoriaId}"
+                    th:classappend="${#fields.hasErrors('categoriaId')} ? 'is-invalid'">
+                <option value="">Selecione uma categoria</option>
+                <option th:each="c : ${categorias}" th:value="${c.id}"
+                        th:text="${c.nome + ' - ' + c.departamento.nome}"></option>
+            </select>
+            <div class="invalid-feedback" th:if="${#fields.hasErrors('categoriaId')}" th:errors="*{categoriaId}"></div>
+            <div class="invalid-feedback" th:unless="${#fields.hasErrors('categoriaId')}">Selecione a categoria do atendimento.</div>
+            <div id="ajudaCategoria" class="form-text">A categoria define o setor responsável e a prioridade inicial.</div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" for="descricao">Descrição <span class="text-danger" aria-hidden="true">*</span></label>
+            <textarea id="descricao" rows="5" class="form-control" maxlength="500" required
+                      aria-describedby="contadorDescricao"
+                      data-char-counter="contadorDescricao"
+                      th:field="*{descricao}"
+                      th:classappend="${#fields.hasErrors('descricao')} ? 'is-invalid'"></textarea>
+            <div class="invalid-feedback" th:if="${#fields.hasErrors('descricao')}" th:errors="*{descricao}"></div>
+            <div class="invalid-feedback" th:unless="${#fields.hasErrors('descricao')}">Descreva detalhadamente o problema ou solicitação.</div>
+            <div id="contadorDescricao" class="form-text text-secondary">0/500 caracteres</div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" for="arquivos">Anexos (opcional)</label>
+            <input id="arquivos" name="arquivos" type="file" class="form-control"
+                   aria-describedby="ajudaAnexos" multiple>
+            <div id="ajudaAnexos" class="form-text">Máximo 10 MB por arquivo (PDF, imagens, Office, TXT ou ZIP).</div>
+        </div>
+
+        <div class="mb-4">
+            <label class="form-label" for="solicitanteNome">Solicitante</label>
+            <input id="solicitanteNome" type="text" class="form-control" readonly disabled
+                   th:value="${#authentication.principal.nome + ' (' + #authentication.principal.papel.rotulo + ')'}">
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-brand">Abrir chamado</button>
+            <a class="btn btn-outline-secondary" th:href="@{/chamados}">Cancelar</a>
+        </div>
+    </form>
+</main>
+<footer th:replace="~{fragments/layout :: rodape}"></footer>
+</body>
+</html>

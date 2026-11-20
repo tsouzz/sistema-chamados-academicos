@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Chamado ' + ${chamado.id})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: topo('chamados')}"></header>
+<main id="conteudo-principal" class="container py-4">
+    <div th:replace="~{fragments/layout :: mensagem}"></div>
+
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+        <div>
+            <a th:href="@{/chamados}" class="small">&larr; Voltar para a lista</a>
+            <h1 class="h3 mt-1 mb-0" th:text="'#' + ${chamado.id} + ' ' + ${chamado.titulo}">#1 Título</h1>
+        </div>
+        <div class="d-flex gap-2">
+            <a class="btn btn-brand"
+               sec:authorize="hasAnyRole('TECNICO', 'GESTOR')"
+               th:href="@{/chamados/{id}/editar(id=${chamado.id})}">Atualizar</a>
+            <form method="post"
+                  sec:authorize="hasRole('GESTOR')"
+                  th:if="${chamado.status.name() != 'CANCELADO'}"
+                  th:action="@{/chamados/{id}/excluir(id=${chamado.id})}"
+                  onsubmit="return confirm('Cancelar este chamado? O histórico de auditoria será preservado.');">
+                <button type="submit" class="btn btn-outline-danger">Cancelar chamado</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-12 col-lg-7">
+            <div class="painel mb-3">
+                <dl class="ficha mb-0">
+                    <dt>Descrição</dt>
+                    <dd th:text="${chamado.descricao}">Descrição</dd>
+
+                    <div class="row">
+                        <div class="col-6">
+                            <dt>Status</dt>
+                            <dd><span class="badge-status" th:classappend="'st-' + ${chamado.status.css}" th:text="${chamado.status.rotulo}">Aberto</span></dd>
+                        </div>
+                        <div class="col-6">
+                            <dt>Prioridade</dt>
+                            <dd><span th:classappend="'pr-' + ${chamado.prioridade.css}" th:text="${chamado.prioridade.rotulo}">Alta</span></dd>
+                        </div>
+                        <div class="col-6">
+                            <dt>Categoria</dt>
+                            <dd th:text="${chamado.categoria.nome}">Categoria</dd>
+                        </div>
+                        <div class="col-6">
+                            <dt>Setor</dt>
+                            <dd th:text="${chamado.categoria.departamento.nome + ' (' + chamado.categoria.departamento.sigla + ')'}">Setor</dd>
+                        </div>
+                        <div class="col-6">
+                            <dt>Solicitante</dt>
+                            <dd th:text="${chamado.solicitante.nome}">Solicitante</dd>
+                        </div>
+                        <div class="col-6">
+                            <dt>Responsável</dt>
+                            <dd th:text="${chamado.responsavel != null ? chamado.responsavel.nome : 'Não atribuído'}">Responsável</dd>
+                        </div>
+                        <div class="col-6">
+                            <dt>Aberto em</dt>
+                            <dd th:text="${#temporals.format(chamado.dataAbertura, 'dd/MM/yyyy')}">01/01/2026</dd>
+                        </div>
+                        <div class="col-6">
+                            <dt>Última atualização</dt>
+                            <dd th:text="${#temporals.format(chamado.dataAtualizacao, 'dd/MM/yyyy')}">01/01/2026</dd>
+                        </div>
+                        <div class="col-6">
+                            <dt>Dias de tramitação</dt>
+                            <dd th:text="${diasDecorridos}">0</dd>
+                        </div>
+                    </div>
+
+                    <dt>Observações do atendimento</dt>
+                    <dd class="mb-0" th:text="${chamado.observacaoAtendimento != null ? chamado.observacaoAtendimento : 'Nenhuma observação registrada.'}">Obs</dd>
+                </dl>
+            </div>
+
+            <div class="painel">
+                <h2 class="h5 mb-3">Anexos</h2>
+
+                <ul class="list-group list-group-flush mb-3" th:if="${!#lists.isEmpty(anexos)}">
+                    <li class="list-group-item d-flex flex-wrap justify-content-between align-items-center gap-2 px-0"
+                        th:each="a : ${anexos}">
+                        <div>
+                            <a class="fw-semibold"
+                               th:href="@{/chamados/{id}/anexos/{anexoId}/download(id=${chamado.id}, anexoId=${a.id})}"
+                               th:text="${a.nomeOriginal}">arquivo.pdf</a>
+                            <div class="small text-secondary">
+                                <span th:text="${a.tamanhoFormatado}">12 KB</span> &bull;
+                                Enviado por <span th:text="${a.enviadoPor.nome}">Usuário</span> em
+                                <span th:text="${#temporals.format(a.dataUpload, 'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</span>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a class="btn btn-sm btn-outline-primary"
+                               th:href="@{/chamados/{id}/anexos/{anexoId}/download(id=${chamado.id}, anexoId=${a.id})}">Baixar</a>
+                            <form method="post"
+                                  th:if="${#authentication.principal.papel.name() == 'GESTOR' or a.enviadoPor.id == #authentication.principal.id}"
+                                  th:action="@{/chamados/{id}/anexos/{anexoId}/excluir(id=${chamado.id}, anexoId=${a.id})}"
+                                  onsubmit="return confirm('Remover este anexo permanentemente?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Remover</button>
+                            </form>
+                        </div>
+                    </li>
+                </ul>
+
+                <div class="border rounded p-3 text-center text-secondary small mb-3 bg-light" th:if="${#lists.isEmpty(anexos)}">
+                    Nenhum arquivo anexado a este chamado ainda.
+                </div>
+
+                <form method="post" enctype="multipart/form-data"
+                      th:action="@{/chamados/{id}/anexos(id=${chamado.id})}"
+                      class="d-flex flex-wrap gap-2 align-items-center">
+                    <label for="novosAnexos" class="visually-hidden">Selecionar arquivos para anexar</label>
+                    <input id="novosAnexos" type="file" name="arquivos" class="form-control form-control-sm"
+                           style="max-width: 360px;" multiple required>
+                    <button type="submit" class="btn btn-sm btn-brand">Anexar arquivo</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-5">
+            <div class="painel">
+                <h2 class="h5 mb-3">Histórico de status</h2>
+                <ul class="linha-tempo" th:if="${!#lists.isEmpty(historico)}">
+                    <li th:each="h : ${historico}">
+                        <span th:if="${h.statusAnterior != null}"
+                              th:text="${h.statusAnterior.rotulo + ' para ' + h.statusNovo.rotulo}">Aberto para Concluído</span>
+                        <span th:if="${h.statusAnterior == null}"
+                              th:text="'Aberto com status ' + ${h.statusNovo.rotulo}">Aberto</span>
+                        <div class="small text-secondary" th:if="${h.observacao != null}" th:text="${h.observacao}">Observação</div>
+                        <small th:text="${#temporals.format(h.dataModificacao, 'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</small>
+                    </li>
+                </ul>
+                <p class="text-secondary mb-0" th:if="${#lists.isEmpty(historico)}">Nenhuma alteração registrada.</p>
+            </div>
+        </div>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: rodape}"></footer>
+</body>
+</html>

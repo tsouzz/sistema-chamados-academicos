@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Chamados')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: topo('chamados')}"></header>
+<main id="conteudo-principal" class="container py-4">
+    <div th:replace="~{fragments/layout :: mensagem}"></div>
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div>
+            <h1 class="h3 m-0">Chamados</h1>
+            <p class="text-secondary small mb-0" th:text="${#lists.size(chamados)} + ' registro(s) encontrado(s)'">0 registros</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-outline-secondary"
+               th:href="@{/chamados/exportar/csv(status=${statusSel}, categoriaId=${categoriaSel})}">Exportar CSV</a>
+            <a class="btn btn-outline-secondary"
+               th:href="@{/chamados/exportar/pdf(status=${statusSel}, categoriaId=${categoriaSel})}">Exportar PDF</a>
+            <a class="btn btn-brand" th:href="@{/chamados/novo}">+ Novo chamado</a>
+        </div>
+    </div>
+
+    <form class="painel row g-3 align-items-end mb-3" method="get" th:action="@{/chamados}" aria-label="Filtros de chamados">
+        <div class="col-12 col-md-4">
+            <label class="form-label" for="status">Status</label>
+            <select id="status" name="status" class="form-select">
+                <option value="">Todos os status</option>
+                <option th:each="s : ${statusValores}" th:value="${s}" th:text="${s.rotulo}"
+                        th:selected="${s == statusSel}"></option>
+            </select>
+        </div>
+        <div class="col-12 col-md-4">
+            <label class="form-label" for="categoriaId">Categoria</label>
+            <select id="categoriaId" name="categoriaId" class="form-select">
+                <option value="">Todas as categorias</option>
+                <option th:each="c : ${categorias}" th:value="${c.id}" th:text="${c.nome}"
+                        th:selected="${c.id == categoriaSel}"></option>
+            </select>
+        </div>
+        <div class="col-12 col-md-4 d-flex gap-2">
+            <button type="submit" class="btn btn-brand">Filtrar</button>
+            <a class="btn btn-outline-secondary" th:href="@{/chamados}">Limpar</a>
+        </div>
+    </form>
+
+    <div class="table-responsive painel p-0" th:if="${!#lists.isEmpty(chamados)}">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+            <tr>
+                <th scope="col">Nº</th>
+                <th scope="col">Título</th>
+                <th scope="col">Categoria / Setor</th>
+                <th scope="col">Status</th>
+                <th scope="col">Prioridade</th>
+                <th scope="col">Aberto em</th>
+                <th scope="col">Responsável</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="c : ${chamados}">
+                <td class="fw-semibold" th:text="'#' + ${c.id}">#1</td>
+                <td><a class="titulo" th:href="@{/chamados/{id}(id=${c.id})}" th:text="${c.titulo}">Título</a></td>
+                <td th:text="${c.categoria.nome + ' / ' + c.categoria.departamento.sigla}">Categoria</td>
+                <td><span class="badge-status" th:classappend="'st-' + ${c.status.css}" th:text="${c.status.rotulo}">Aberto</span></td>
+                <td><span th:classappend="'pr-' + ${c.prioridade.css}" th:text="${c.prioridade.rotulo}">Alta</span></td>
+                <td th:text="${#temporals.format(c.dataAbertura, 'dd/MM/yyyy')}">01/01/2026</td>
+                <td th:text="${c.responsavel != null ? c.responsavel.nome : 'Não atribuído'}">Responsável</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <th:block th:if="${#lists.isEmpty(chamados)}">
+        <div th:replace="~{fragments/layout :: emptyState('Nenhum chamado encontrado', 'Não há chamados correspondentes aos filtros aplicados no momento.', '/chamados/novo', 'Abrir novo chamado')}"></div>
+    </th:block>
+</main>
+<footer th:replace="~{fragments/layout :: rodape}"></footer>
+</body>
+</html>
