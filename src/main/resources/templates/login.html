@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Entrar')}"></head>
+<body class="bg-light">
+<main class="container py-5" style="max-width: 440px;">
+    <div class="text-center mb-4">
+        <h1 class="h3 fw-bold mb-1">Chamados Acadêmicos</h1>
+        <p class="text-secondary mb-0">Acesse com seu e-mail institucional</p>
+    </div>
+
+    <div class="alert alert-danger" role="alert" th:if="${param.erro}">
+        E-mail ou senha inválidos. Verifique suas credenciais e tente novamente.
+    </div>
+    <div class="alert alert-success" role="status" th:if="${param.logout}">
+        Sessão encerrada com sucesso.
+    </div>
+
+    <form class="painel" method="post" th:action="@{/login}">
+        <div class="mb-3">
+            <label class="form-label" for="email">E-mail</label>
+            <input id="email" name="email" type="email" class="form-control"
+                   placeholder="seu.nome@ifsp.edu.br" required autofocus>
+        </div>
+
+        <div class="mb-4">
+            <label class="form-label" for="senha">Senha</label>
+            <input id="senha" name="senha" type="password" class="form-control" required>
+        </div>
+
+        <button type="submit" class="btn btn-brand w-100">Entrar</button>
+    </form>
+</main>
+</body>
+</html>
